@@ -1,4 +1,4 @@
-' The current working macro as of 5/30/2017
+' The current working macro
 
 Sub SMS_WIP()
 
@@ -46,7 +46,7 @@ Sub SMS_WIP()
         
     'Find the SMS SKU Section and then copy
     Set theSO = Cells.Find(What:="SO", LookAt:=xlWhole)
-    Set soRng = Range(theSO, theSO.End(xlDown).End(xlToRight))
+    Set soRng = Range(theSO, theSO.End(xlToRight).End(xlDown))
     soRng.Copy
         
     'Create new tab for SMS SKU Section and paste
@@ -73,7 +73,7 @@ Sub SMS_WIP()
             
     'Delete rows that are blank in column AP to reduce working data
     With wrkngSht
-        lastRow = .Cells(.Rows.Count, "AP").End(xlUp).Row
+        lastRow = .Cells(.Rows.Count, "AQ").End(xlUp).Row
         For i = lastRow To startRow Step -1
             If .Cells(i, "AP").Value = "" Then
                 .Cells(i, "AP").EntireRow.Delete
@@ -89,7 +89,7 @@ Sub SMS_WIP()
         .Range("D:J").Delete
         .Range("H:K").Delete
         .Range("J:T").Delete
-        .Range("K:AK").Delete
+        .Range("K:AK").Delete '.Range("K:AJ").Delete
         .Range("L:M").Delete
     End With
         
@@ -309,12 +309,13 @@ Sub SMS_WIP()
     
     wrkngSht.Range("J7").PasteSpecial Paste:=xlPasteValues
     With wrkngSht.Range("J7:K7")
-            .MergeCells = True
-            .HorizontalAlignment = xlLeft
-            .NumberFormat = "General"
-            .Font.Bold = True
-            .Font.Size = 8
-        End With
+        .MergeCells = True
+        .HorizontalAlignment = xlLeft
+        .NumberFormat = "General"
+        .Font.Bold = True
+        .Font.Size = 8
+    End With
+        
         
     'Set horizontal alignment of table from row 13 and down
     With wrkngSht
@@ -514,4 +515,3 @@ Sub SMS_WIP()
     End With
     
     End Sub
-
