@@ -4,33 +4,28 @@ Sub IRIS_Edit()
 '
 
 '
-    Dim theWB As Workbook
-    Dim theWS As Worksheet
+    Dim theWB As Workbook 'workbook variable
+    Dim theWS As Worksheet 'worksheet variable
+    Dim fName As String 'for storing the xml file name
     Dim listObj As ListObject ' For determining if table1 exist
     Dim rList As Range ' For removing Table and converting to Range
-    Dim lRow As Long ' For storing the last row when filling in Discounts and other columns
-    Dim lr As Long ' For inserting blank rows after each change in Column A
-    Dim i As Long
-    Dim theRng As Range
-    Dim theDate As Range ' For placing the TODAY formula and formatting that cell
-    Dim theContact As Range, theCustomer As Range
-    Dim theDesc As Range
-    Dim thePic As String
+    Dim lRow, lRow1 As Long ' For storing the last row when filling in Discounts and other columns
+    Dim i As Long 'for inserting blank rows after each change in Column A
+    Dim c, sRange1, sRange2 As Range 'for adding actual subtotals to each section
+    'Dim theRng As Range
     Dim Cell As Range
     Dim NR As Long
-    Dim theB11 As Range
-    Dim thePTRC As Range
-    Dim thePTRCR As Range
-    Dim thePTRH As Range
-    Dim n As Long, q As Long, x As String
-    n = 1
+    Dim theR11 As Range 'for formatting the header row, row 11
+    Dim thePTRC, thePTRCR, thePTRH As Range 'project total variables
+    Dim n, q As Long, x As String
+    Dim thePic As Shape 'for inserting PDS logo
+    'n = 1
     
     Set theWB = ActiveWorkbook
     Set theWS = theWB.Sheets("Sheet1")
     
     'Turn off screen updating
     Application.ScreenUpdating = False
-    
     
     'Set Window Size and remove grid lines
     With ActiveWindow
@@ -70,15 +65,19 @@ Sub IRIS_Edit()
     Range("F1").Value = "Discounted Price"
     Range("G1").Value = "Qty"
     Range("H1").Value = "Extended Price"
+
+    lRow = Range("D" & Rows.Count).End(xlUp).Row
     
     'Fill in Discount%, Discounted Price, & ExtPrice Columns
-    lRow = Range("D" & Rows.Count).End(xlUp).Row
     Range("C2:C" & lRow).WrapText = True
-    Range("D2:D" & lRow).HorizontalAlignment = xlRight
+    With Range("D2:D" & lRow)
+        .HorizontalAlignment = xlRight
+        .NumberFormat = "0.00"
+    End With
     Range("E2") = "0.00": Range("E2:E" & lRow).FillDown
     Range("E2:E" & lRow).HorizontalAlignment = xlCenter
     Range("F2:F" & lRow).NumberFormat = "0.00"
-    Range("F2") = "=if(isnumber(d2),d2-(d2*(e2/100)),0)": Range("F2:F" & lRow).FillDown
+Range("F2") = "=iferror(d2-(d2*(e2/100)),0)": Range("F2:F" & lRow).FillDown
     Range("H2:H" & lRow).NumberFormat = "$#,##0.00"
     Range("H2") = "=f2*g2": Range("H2:H" & lRow).FillDown
     Range("H2:H" & lRow).HorizontalAlignment = xlRight
@@ -99,26 +98,44 @@ Sub IRIS_Edit()
                 With Range("B" & i + 3)
                     .Font.Bold = True
                     .Font.Size = 11
-                    .Font.Color = RGB(149, 179, 215)
+                    .Font.Color = RGB(51, 102, 255)
                     .HorizontalAlignment = xlLeft
                     .Value2 = "Materials"
                 End With
         End If
     Next i
     
-    'Delete some unneeded rows
-    Rows("2:3").Delete Shift:=xlUp
+    'section to try and add identification in col M for subtotaling sections etc
+    lRow1 = Cells(Rows.Count, "B").End(xlUp).Row
+    Set sRange1 = Range("M2:M" & lRow1)
+    Set sRange2 = Range("H2:H" & lRow1)
     
+    For Each c In Range("H2:H" & lRow1)
+    If Not c.Value <> "" Then
+        c.Offset(, 5).Value = "0"
+    Else
+        c.Offset(, 5).Value = "1"
+    lRow1 = lRow1 + 1
+    End If
+    Next c
+
+    'setting project total variable
+    myVal = Application.WorksheetFunction.SumIf(sRange1, "=1", sRange2)
+
+    'Delete some unneeded rows
+    Rows("2:3").Delete Shift:=xlUP
+
+    'insert rows 1 through 10
+    theWS.Rows(1).Resize(10).EntireRow.Insert
+    
+    'hide row 9    
+    Rows("9").EntireRow.Hidden = True
+      
+    'Set the column widths
     With Columns("A")
         .ClearContents
         .ColumnWidth = 1.29
     End With
-    
-    theWS.Rows(1).Resize(10).EntireRow.Insert
-    
-    Rows("9").EntireRow.Hidden = True
-      
-    'Set the column widths
     Columns("B").ColumnWidth = 25
     Columns("C").ColumnWidth = 56.29
     Columns("D").ColumnWidth = 13.57
@@ -128,29 +145,8 @@ Sub IRIS_Edit()
     Columns("H").ColumnWidth = 17.29
     Columns("I").ColumnWidth = 4.43
     
-    Dim rw As Long, srw As Long, col As Long
-
-    With ActiveSheet
-        For col = 1 To Cells(1, Columns.Count).End(xlToLeft).Column
-            If .Cells(11, col) = "Extended Price" Then
-                srw = 2
-                For rw = 2 To .Cells(Rows.Count, col).End(xlUp).Row + 1
-                    If IsEmpty(.Cells(rw, col)) And rw > srw Then
-                        '.Cells(rw, col).Value = Application.Sum(.Range(.Cells(srw, col), .Cells(rw - 1, col)))
-                        .Cells(rw, col).Formula = "=SUM(" & .Cells(srw, col).Address(0, 0) & _
-                                    Chr(58) & .Cells(rw - 1, col).Address(0, 0) & ")"
-                        .Cells(rw, col).NumberFormat = _
-                          "[color5]_($* #,##0.00_);[color9]_($* (#,##0.00);[color15]_("" - ""_);[color10]_(@_)"
-                        srw = rw + 1
-                    End If
-                Next rw
-            End If
-        Next col
-    End With
-
     'Define the Customer Contact Variable and format cell
-    Set theContact = theWS.Range("B7")
-    With theContact
+    With theWS.Range("B7")
         .HorizontalAlignment = xlLeft
         .VerticalAlignment = xlBottom
         .Font.Bold = True
@@ -158,23 +154,21 @@ Sub IRIS_Edit()
     End With
     
     'Define the Date Variable and format cell
-    Set theDate = theWS.Range("B8")
-    With theDate
+    With theWS.Range("B8")
         .HorizontalAlignment = xlLeft
         .VerticalAlignment = xlBottom
         .Font.Bold = True
         .Value = "=TODAY()"
     End With
     
-    
+    'for placing the pricing expires after 30 days line
     With Range("C7")
         .Value = "**Pricing Expires After 30 Days**"
         .Font.Size = 10
     End With
     
     'For placing the Customer Name
-    Set theCustomer = theWS.Range("C3:D3")
-    With theCustomer
+    With theWS.Range("C3:D3")
         .HorizontalAlignment = xlCenter
         .MergeCells = True
         .Value = "Customer Name"
@@ -183,8 +177,7 @@ Sub IRIS_Edit()
     End With
 
     'For placing the BoM Description
-    Set theDesc = theWS.Range("C4:D4")
-    With theDesc
+    With theWS.Range("C4:D4")
         .HorizontalAlignment = xlCenter
         .MergeCells = True
         .Font.Size = 11
@@ -192,25 +185,25 @@ Sub IRIS_Edit()
     End With
     
     'Add the borders around the Header Row and Change the Color
-    Set theB11 = Range("B11", Range("B11").End(xlToRight))
-    With theB11.Interior
+    Set theR11 = Range("B11", Range("B11").End(xlToRight))
+    With theR11.Interior
         .Pattern = xlSolid
         .PatternColorIndex = xlAutomatic
         .ThemeColor = xlThemeColorDark1
         .TintAndShade = -0.249977111117893
         .PatternTintAndShade = 0
     End With
-    With theB11.Font
+    With theR11.Font
         .Size = 11
         .Bold = True
     End With
-    With theB11.Borders
+    With theR11.Borders
         .LineStyle = xlContinuous
         .ColorIndex = xlAutomatic
         .TintAndShade = 0
         .Weight = xlThin
     End With
-    theB11.Borders(xlEdgeBottom).LineStyle = xlNone
+    theR11.Borders(xlEdgeBottom).LineStyle = xlNone
 
     
     'Add the borders around each section in the BoM
@@ -265,6 +258,7 @@ Sub IRIS_Edit()
         .HorizontalAlignment = xlRight
         .VerticalAlignment = xlCenter
         .NumberFormat = "_($* #,##0.00_);_($* (#,##0.00);_($* ""-""??_);_(@_)"
+        .Value = myVal
     End With
     
     ' Add Border Above Project Total Row
@@ -274,18 +268,14 @@ Sub IRIS_Edit()
     End With
     
     'Insert PDS Logo
-    Range("B1").Select
-    theWS.Pictures.Insert("C:\Users\tcoplien\Desktop\SMARTnet\pdsLogo.png") _
-         .Select
-    With Selection.ShapeRange
-        .Height = 64.8
-        .ScaleHeight 1.2, msoFalse, msoScaleFromTopLeft
-        .IncrementLeft 4
-        .IncrementTop 4
-    End With
+    Set thePic = theWS.Shapes.AddPicture("C:\Users\tcoplien\Desktop\SMARTnet\pdsLogo.png", _
+                 msoFalse, msoTrue, 15, 10, 74, 80)
     
     'Rename the tab
     theWS.Name = "Report"
+
+    'hide column m
+    theWS.Range("M:M").EntireColumn.Hidden = True
     
     'Set the print area
     With theWS.PageSetup
