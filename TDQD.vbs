@@ -2,11 +2,8 @@
     Public isTrade As String 'asking if there is trade involved
     Public lRow As Long 'for getting last row
     Public sMarginPercent As Integer 'for getting desired margin
-    Public sMargin As Integer 'for converting Margin to decimal
-    Public markUp As Integer 'for getting markup from margin
-    Public oneHundred As Integer 'for blah blah blah
+    Public sMargin As String 'for converting Margin to decimal
 
-    
 
 
 Sub TDQ_Discount()
@@ -15,6 +12,7 @@ Sub TDQ_Discount()
 '
     Dim thisWB As Workbook 'this workbook
     Dim thisWS As Worksheet 'this worksheet
+    Const oneHundred As Long = 100 'for blah blah blah
     Const sRow As Long = 14 'What's the first row with data?
     
     Set thisWB = ActiveWorkbook
@@ -45,18 +43,11 @@ Sub TDQ_Discount()
     'get the last row
     lRow = Range("B" & Rows.Count).End(xlUp).Row
     
-    'ask what you would like downsell to be
-    'downSell = Application.InputBox(Prompt:="What will Discount off List be?", Type:=1 + 8)
-    
     'ask what you would like margin to be at
     sMarginPercent = Application.InputBox(Prompt:="What is the desired margin?", Type:=1 + 8)
     
     'for converting the Margin Percent to Decimal
-    oneHundred = 100
     sMargin = sMarginPercent / oneHundred
-    
-    'for converting Margin to Mark-Up
-    markUp = sMargin / (1 - sMargin)
         
     'ask if trade is involved
     isTrade = MsgBox("Is there trade involved?", vbYesNo + vbQuestion, "IsTradeInvolved")
@@ -112,7 +103,7 @@ Private Sub tradeInNo()
     'start filling in formulas
     Range("G14:G" & lRow).Formula = "=SUM(1-(D14/F14))*100"
         If sMarginPercent > 0 Then
-            Range("H14:H" & lRow).Formula = "=d14*" & markUp & ""
+            Range("H14:H" & lRow).Formula = "=d14*/(1-" & sMargin & ")"
         End If
     Range("I14:I" & lRow).Formula = "=((H14-D14)/H14)*100"
     
