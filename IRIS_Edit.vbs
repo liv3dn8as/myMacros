@@ -54,7 +54,7 @@ Sub IRIS_Edit()
     'End If
     
     ' Delete a group of unneeded columns
-    Range("B:B, E:E, I:K").Delete
+    Range("B:B, E:E, I:S").Delete
 
     ' Start Changing Headers
     Range("B1").Value = "Part Number"
@@ -77,8 +77,9 @@ Sub IRIS_Edit()
     Range("E2") = "0.00": Range("E2:E" & lRow).FillDown
     Range("E2:E" & lRow).HorizontalAlignment = xlCenter
     Range("F2:F" & lRow).NumberFormat = "0.00"
-Range("F2") = "=iferror(d2-(d2*(e2/100)),0)": Range("F2:F" & lRow).FillDown
+    Range("F2") = "=iferror(d2-(d2*(e2/100)),0)": Range("F2:F" & lRow).FillDown
     Range("H2:H" & lRow).NumberFormat = "$#,##0.00"
+    Range("F2:F" & lRow).NumberFormat = "$#,##0.00"
     Range("H2") = "=f2*g2": Range("H2:H" & lRow).FillDown
     Range("H2:H" & lRow).HorizontalAlignment = xlRight
     Range("G1:G" & lRow).HorizontalAlignment = xlCenter
@@ -268,8 +269,8 @@ Range("F2") = "=iferror(d2-(d2*(e2/100)),0)": Range("F2:F" & lRow).FillDown
     End With
     
     'Insert PDS Logo
-    Set thePic = theWS.Shapes.AddPicture("C:\Users\tcoplien\Desktop\SMARTnet\pdsLogo.png", _
-                 msoFalse, msoTrue, 15, 10, 74, 80)
+    Set thePic = theWS.Shapes.AddPicture("C:\Users\tcoplien\Desktop\SMARTnet\pdsLogo2018.png", _
+                 msoFalse, msoTrue, 15, 10, -1, -1)
     
     'Rename the tab
     theWS.Name = "Report"
